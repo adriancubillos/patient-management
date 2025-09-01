@@ -27,7 +27,7 @@ public class BillingGrpcService extends BillingServiceImplBase {
                 .build();
 
         responseObserver.onNext(response);
-        log.info("createBillingAccount response sent {}" , response.toString());
+        log.info("createBillingAccount response sent {}" , response);
         // this is different form REST where we return response
         // in gRPC we use responseObserver to send the response
         // WE can send multiple responses if needed
