@@ -22,7 +22,7 @@ public class BillingGrpcService extends BillingServiceImplBase {
         //like save to database, perform calculations, etc
 
         BillingResponse response = BillingResponse.newBuilder()
-                .setAccountId("12345") // This would be generated or retrieved from DB
+                .setAccountId(billingRequest.getPatientId()) // This would be generated or retrieved from DB
                 .setStatus("ACTIVE")
                 .build();
 
