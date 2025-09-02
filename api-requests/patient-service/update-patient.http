@@ -8,4 +8,14 @@ Content-Type: application/json
   "address": "123 Main St, City, Country",
   "dateOfBirth": "1989-02-11"
 }
-###
+
+### Put request to update an existing patient usign API Gateway
+PUT http://localhost:4004/api/patients/123e4567-e89b-12d3-a456-426614174000
+Content-Type: application/json
+
+{
+  "name": "Julyanna P Merchan",
+  "email": "test_updated@example.com",
+  "address": "123 Main St, City, Country",
+  "dateOfBirth": "1989-02-11"
+}
