@@ -6,15 +6,18 @@
       <option name="ignoredModules">
         <list>
           <option value="patient-service" />
+          <option value="analytics-service" />
         </list>
       </option>
       <option name="ignoredPackages">
         <list>
           <option value="org.apache.commons:commons-lang3:3.17.0" />
+          <option value="commons-io:commons-io:2.11.0" />
         </list>
       </option>
       <option name="ignoredReasons">
         <list>
+          <option value="Not exploitable" />
           <option value="Not exploitable" />
         </list>
       </option>
