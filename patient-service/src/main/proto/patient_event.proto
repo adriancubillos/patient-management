@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package patient.events;
+// tells the protobuf compiler to generate multiple files for each message instead of one big file
+option java_multiple_files = true;
+
+message PatientEvent {
+  string patientId = 1;
+  string name = 2;
+  string email = 3;
+  string event_type = 4; // e.g., "CREATED", "UPDATED", "DELETED"
+}
+
