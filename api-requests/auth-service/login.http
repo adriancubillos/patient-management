@@ -1,0 +1,17 @@
+### Login Request to retireve an authentication token
+POST http://localhost:4005/login
+Content-Type: application/json
+
+{
+  "email": "testuser@test.com",
+  "password": "password123"
+}
+
+### Example of a failed login request
+POST http://localhost:4005/login
+Content-Type: application/json
+
+{
+  "email": "sss",
+  "password": "123"
+}
