@@ -1,3 +1,14 @@
+### Login Request to retireve an authentication token on Docker Container (port is different and path needs to match predicates on gateway configuration)
+POST http://localhost:4004/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@test.com",
+  "password": "password123"
+}
+
+> {% client.global.set("token", response.body.token) %}
+
 ### Login Request to retireve an authentication token
 POST http://localhost:4005/login
 Content-Type: application/json
