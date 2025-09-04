@@ -11,6 +11,7 @@
         <module name="patient-service" />
         <module name="auth-service" />
         <module name="billing-service" />
+        <module name="Integration-test" />
       </profile>
     </annotationProcessing>
   </component>
