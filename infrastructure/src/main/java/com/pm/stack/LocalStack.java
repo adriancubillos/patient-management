@@ -6,6 +6,7 @@ import software.amazon.awscdk.services.ec2.*;
 import software.amazon.awscdk.services.ec2.InstanceType;
 import software.amazon.awscdk.services.ecs.*;
 import software.amazon.awscdk.services.ecs.Protocol;
+import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedFargateService;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.amazon.awscdk.services.logs.RetentionDays;
 import software.amazon.awscdk.services.msk.CfnCluster;
@@ -38,7 +39,8 @@ public class LocalStack extends Stack {
         this.ecsCluster = createEcsCluster();
 
         FargateService authService = createFargateService("AuthService", "auth-service", List.of(4005),
-                authServiceDb, Map.of("JWT_SECRET", "7626cbc50f8d68bde3d76cd4e369aeea20a6a5f302cbfbcf3893d13f83f077b3"));
+                authServiceDb,
+                Map.of("JWT_SECRET", "7626cbc50f8d68bde3d76cd4e369aeea20a6a5f302cbfbcf3893d13f83f077b3"));
 
         authService.getNode().addDependency(authDbHealthCheck);
         authService.getNode().addDependency(authServiceDb);
@@ -61,7 +63,21 @@ public class LocalStack extends Stack {
         patientService.getNode().addDependency(billingService);
         patientService.getNode().addDependency(mskCluster);
 
+        createApiGatewayService();
 
+
+
+    }
+
+    public static void main(final String[] args) {
+        App app = new App(AppProps.builder().outdir("./cdk.out").build());
+        // Synthesizer converts the stack to a CloudFormation template
+        StackProps props = StackProps.builder().synthesizer(new BootstraplessSynthesizer()).build();
+
+        new LocalStack(app, "LocalStack", props);
+        app.synth();
+
+        System.out.println("App synthesizing in progress...");
     }
 
     private Vpc createVpc() {
@@ -143,11 +159,12 @@ public class LocalStack extends Stack {
                                 .removalPolicy(RemovalPolicy.DESTROY)
                                 .retention(RetentionDays.ONE_DAY)
                                 .build())
-                                .streamPrefix(imageName)
+                        .streamPrefix(imageName)
                         .build()));
 
         Map<String, String> envVars = new HashMap<>();
-        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS", "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512");
+        envVars.put("SPRING_KAFKA_BOOTSTRAP_SERVERS",
+                "localhost.localstack.cloud:4510, localhost.localstack.cloud:4511, localhost.localstack.cloud:4512");
         if (additionalEnvVars != null) {
             envVars.putAll(additionalEnvVars);
         }
@@ -180,14 +197,46 @@ public class LocalStack extends Stack {
                 .build();
     }
 
-    public static void main(final String[] args) {
-        App app = new App(AppProps.builder().outdir("./cdk.out").build());
-        // Synthesizer converts the stack to a CloudFormation template
-        StackProps props = StackProps.builder().synthesizer(new BootstraplessSynthesizer()).build();
+    private void createApiGatewayService() {
+        FargateTaskDefinition taskDefinition = FargateTaskDefinition.Builder.create(this, "APIGatewayTaskDefinition")
+                .memoryLimitMiB(512)
+                .cpu(256)
+                .build();
 
-        new LocalStack(app, "LocalStack", props);
-        app.synth();
+        ContainerDefinitionOptions containerOptions = ContainerDefinitionOptions.builder()
+                .image(ContainerImage.fromRegistry("api-gateway"))
+                .environment(Map.of(
+                        "SPRING_PROFILE_ACTIVE", "prod",
+                        "AUTH_SERVICE_URL", "http://host.docker.internal:4005"
+                ))
+                .portMappings(List.of(4004).stream()
+                        .map(port -> PortMapping.builder()
+                                .containerPort(port)
+                                .hostPort(port)
+                                .protocol(Protocol.TCP)
+                                .build())
+                        .toList())
 
-        System.out.println("App synthesizing in progress...");
+                .logging(LogDriver.awsLogs(AwsLogDriverProps.builder()
+                        .logGroup(LogGroup.Builder.create(this, "ApiGatewayLogGroup")
+                                .logGroupName("/ecs/api-gateway")
+                                .removalPolicy(RemovalPolicy.DESTROY)
+                                .retention(RetentionDays.ONE_DAY)
+                                .build())
+                        .streamPrefix("api-gateway")
+                        .build()))
+                .build();
+
+        taskDefinition.addContainer("APIGatewayContainer", containerOptions);
+
+
+        ApplicationLoadBalancedFargateService apiGateway =
+                ApplicationLoadBalancedFargateService.Builder.create(this, "APIGatewayService")
+                        .cluster(ecsCluster)
+                        .serviceName("api-gateway")
+                        .taskDefinition(taskDefinition)
+                        .desiredCount(1)
+                        .healthCheckGracePeriod(Duration.seconds(60))
+                        .build();
     }
 }
