@@ -813,7 +813,7 @@
                     "allocatedStorage": "20",
                     "copyTagsToSnapshot": true,
                     "dbInstanceClass": "db.t2.micro",
-                    "dbName": "auth-serevice-db",
+                    "dbName": "auth-service-db",
                     "dbSubnetGroupName": {
                       "Ref": "AuthServiceDBSubnetGroupCFE5A552"
                     },
