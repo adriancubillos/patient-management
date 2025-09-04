@@ -1,7 +1,13 @@
 package com.pm.stack;
 
 import software.amazon.awscdk.*;
+
+import software.amazon.awscdk.services.ec2.InstanceClass;
+import software.amazon.awscdk.services.ec2.InstanceSize;
+import software.amazon.awscdk.services.ec2.InstanceType;
 import software.amazon.awscdk.services.ec2.Vpc;
+import software.amazon.awscdk.services.rds.*;
+import software.amazon.awscdk.services.route53.CfnHealthCheck;
 
 public class LocalStack extends Stack {
 
@@ -11,12 +17,30 @@ public class LocalStack extends Stack {
         super(scope, id, props);
 
         this.vpc = createVpc();
+
+        DatabaseInstance authServiceDb = createDatabaseInstance("AuthServiceDB", "auth-serevice-db");
+        DatabaseInstance patientServiceDb = createDatabaseInstance("PatientServiceDB", "patient-service-db");
+
     }
 
     private Vpc createVpc() {
         return Vpc.Builder.create(this, "PatientManagementVpc")
                 .vpcName("PatientManagementVpc")
-                .maxAzs(2)  // Default is all AZs (avaliability zones) in the region
+                .maxAzs(2)  // Default is all AZs (availability zones) in the region
+                .build();
+    }
+
+    private DatabaseInstance createDatabaseInstance(String id, String dbName) {
+        return DatabaseInstance.Builder.create(this, id)
+                .engine(DatabaseInstanceEngine.postgres(
+                        PostgresInstanceEngineProps.builder()
+                                .version(PostgresEngineVersion.VER_17_2).build()))
+                .vpc(this.vpc)
+                .instanceType(InstanceType.of(InstanceClass.BURSTABLE2, InstanceSize.MICRO))
+                .allocatedStorage(20)
+                .credentials(Credentials.fromGeneratedSecret("admin_user"))
+                .databaseName(dbName)
+                .removalPolicy(RemovalPolicy.DESTROY)
                 .build();
     }
 
