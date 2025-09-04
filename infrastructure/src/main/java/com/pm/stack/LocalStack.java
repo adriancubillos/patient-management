@@ -21,6 +21,9 @@ public class LocalStack extends Stack {
         DatabaseInstance authServiceDb = createDatabaseInstance("AuthServiceDB", "auth-service-db");
         DatabaseInstance patientServiceDb = createDatabaseInstance("PatientServiceDB", "patient-service-db");
 
+        CfnHealthCheck authDbHealthCheck = createCfnHealthCheck(authServiceDb, "AuthServiceDBHealthCheck");
+        CfnHealthCheck patientDbHealthCheck = createCfnHealthCheck(patientServiceDb, "PatientServiceDBHealthCheck");
+
     }
 
     private Vpc createVpc() {
@@ -41,6 +44,18 @@ public class LocalStack extends Stack {
                 .credentials(Credentials.fromGeneratedSecret("admin_user"))
                 .databaseName(dbName)
                 .removalPolicy(RemovalPolicy.DESTROY)
+                .build();
+    }
+
+    private CfnHealthCheck createCfnHealthCheck(DatabaseInstance db, String id) {
+        return CfnHealthCheck.Builder.create(this, id)
+                .healthCheckConfig(CfnHealthCheck.HealthCheckConfigProperty.builder()
+                        .type("TCP")
+                        .port(Token.asNumber(db.getDbInstanceEndpointPort()))
+                        .ipAddress(db.getDbInstanceEndpointAddress())
+                        .requestInterval(30)
+                        .failureThreshold(3)
+                        .build())
                 .build();
     }
 
