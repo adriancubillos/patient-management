@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public class AuthIntegrationTest {
     @BeforeAll
-    public static void setup() {
+    public static void setUp() {
         RestAssured.baseURI = "http://localhost:4004";
     }
 
