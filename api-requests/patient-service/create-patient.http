@@ -1,3 +1,18 @@
+### POST request to crate a new patient on api-gateway
+POST http://localhost:4004/api/patients
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Julyanna gateway Merchan",
+  "email": "test_gateway@example.com",
+  "address": "123 Main St, City, Country",
+  "dateOfBirth": "1989-02-11",
+  "registeredDate": "2025-08-29"
+}
+
+###
+
 ### POST request to crate a new patient
 POST http://localhost:4000/patients
 Content-Type: application/json
