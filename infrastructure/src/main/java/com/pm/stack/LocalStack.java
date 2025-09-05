@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LocalStack extends Stack {
 
@@ -209,7 +210,7 @@ public class LocalStack extends Stack {
                         "SPRING_PROFILE_ACTIVE", "prod",
                         "AUTH_SERVICE_URL", "http://host.docker.internal:4005"
                 ))
-                .portMappings(List.of(4004).stream()
+                .portMappings(Stream.of(4004)
                         .map(port -> PortMapping.builder()
                                 .containerPort(port)
                                 .hostPort(port)
